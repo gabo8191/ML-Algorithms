@@ -6,9 +6,8 @@ calidad de datos (`validate_data`), mostrar un resumen (`get_data_summary`) y ob
 
 import pandas as pd
 import numpy as np
-from typing import Optional, Tuple, List, Dict, Any
+from typing import Optional, Dict, Any
 from pathlib import Path
-import warnings
 
 from ..utils.logger import LoggerMixin
 from ..utils.config import Config
@@ -64,10 +63,42 @@ class DataLoader(LoggerMixin):
             )
             raise ValueError(f"No se pudo cargar el archivo: {str(e)}")
 
-    def load_titanic_data(self, file_path: Optional[str] = None) -> pd.DataFrame:
-
+    def load_coffee_shop_data(self, file_path: Optional[str] = None) -> pd.DataFrame:
+        """Cargar datos de cafetería con optimización de tipos de datos"""
         if file_path is None:
-            file_path = self.config.DATA_PATH
+            # Obtener configuración del dataset usando el nuevo método
+            dataset_info = self.config.get_dataset_info()
+            file_path = dataset_info["data_path"] or self.config.DATA_PATH
+
+        # Asegurar que file_path no sea None
+        if file_path is None:
+            raise ValueError("No se pudo determinar la ruta del archivo de datos")
+
+        self.df = self.load_csv(
+            file_path,
+            dtype={
+                "Number_of_Customers_Per_Day": "int16",
+                "Average_Order_Value": "float32",
+                "Operating_Hours_Per_Day": "int8",
+                "Number_of_Employees": "int8",
+                "Marketing_Spend_Per_Day": "float32",
+                "Location_Foot_Traffic": "int16",
+                "Daily_Revenue": "float32",
+            },
+        )
+
+        return self.df
+
+    def load_titanic_data(self, file_path: Optional[str] = None) -> pd.DataFrame:
+        """Mantener compatibilidad con código existente"""
+        if file_path is None:
+            # Obtener configuración del dataset usando el nuevo método
+            dataset_info = self.config.get_dataset_info()
+            file_path = dataset_info["data_path"] or self.config.DATA_PATH
+
+        # Asegurar que file_path no sea None
+        if file_path is None:
+            raise ValueError("No se pudo determinar la ruta del archivo de datos")
 
         self.df = self.load_csv(
             file_path,
@@ -85,7 +116,7 @@ class DataLoader(LoggerMixin):
         return self.df
 
     def load_airline_data(self, file_path: Optional[str] = None) -> pd.DataFrame:
-
+        """Mantener compatibilidad con código existente"""
         return self.load_titanic_data(file_path)
 
     def validate_data(self, df: Optional[pd.DataFrame] = None) -> Dict[str, Any]:

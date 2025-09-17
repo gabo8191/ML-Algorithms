@@ -8,10 +8,9 @@ exporta CSV (`export_results_to_csv`) y selecciona el mejor modelo (`get_best_mo
 
 import numpy as np
 import pandas as pd
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Optional, List, Dict, Any
 from pathlib import Path
 import json
-import joblib
 from datetime import datetime
 
 from .metrics_calculator import MetricsCalculator
@@ -36,7 +35,7 @@ class ModelEvaluator(LoggerMixin):
         X_test: np.ndarray,
         y_train: np.ndarray,
         y_test: np.ndarray,
-        model_name: str = "KNN",
+        model_name: str = "ML_Model",
         class_names: Optional[List[str]] = None,
         feature_names: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
@@ -60,6 +59,39 @@ class ModelEvaluator(LoggerMixin):
             y_test, y_test_pred
         )
 
+        # Añadir métricas basadas en probabilidad si están disponibles (AUC y AP)
+        try:
+            if y_test_proba is not None:
+                from sklearn.metrics import roc_auc_score, average_precision_score
+
+                # Manejar binario vs multi-clase
+                if y_test_proba.ndim == 1:
+                    positive_scores = y_test_proba
+                else:
+                    # Asumir clase positiva = índice 1 si binaria; si multiclass usar ovr
+                    if y_test_proba.shape[1] == 2:
+                        positive_scores = y_test_proba[:, 1]
+                    else:
+                        positive_scores = None
+
+                if positive_scores is not None:
+                    test_metrics["auc_roc"] = float(
+                        roc_auc_score(y_test, positive_scores)
+                    )
+                    test_metrics["average_precision"] = float(
+                        average_precision_score(y_test, positive_scores)
+                    )
+                else:
+                    # Multiclase: usar macro-ovr
+                    test_metrics["auc_roc"] = float(
+                        roc_auc_score(
+                            y_test, y_test_proba, multi_class="ovr", average="macro"
+                        )
+                    )
+                    # AP multiclase no está bien definido; omitir
+        except Exception as prob_err:
+            self.logger.warning(f"Cálculo de AUC/AP falló: {str(prob_err)}")
+
         advanced_metrics = self.metrics_calculator.calculate_advanced_metrics(
             y_test, y_test_pred
         )
@@ -78,8 +110,10 @@ class ModelEvaluator(LoggerMixin):
 
         cv_metrics = None
         try:
+            # Obtener configuración de hiperparámetros usando el nuevo método
+            hyperparameter_config = self.config.get_hyperparameter_config()
             cv_metrics = self.metrics_calculator.calculate_cross_validation_metrics(
-                model, X_train, y_train, cv=self.config.CV_FOLDS
+                model, X_train, y_train, cv=hyperparameter_config["cv_folds"]
             )
         except Exception as e:
             self.logger.warning(f"Validación cruzada falló: {str(e)}")
@@ -96,12 +130,14 @@ class ModelEvaluator(LoggerMixin):
             try:
                 from sklearn.inspection import permutation_importance
 
+                # Obtener configuración de hiperparámetros usando el nuevo método
+                hyperparameter_config = self.config.get_hyperparameter_config()
                 perm_importance = permutation_importance(
                     model,
                     X_test,
                     y_test,
                     n_repeats=10,
-                    random_state=self.config.RANDOM_STATE,
+                    random_state=hyperparameter_config["random_state"],
                 )
 
                 importances = getattr(perm_importance, "importances_mean", None)
@@ -111,8 +147,6 @@ class ModelEvaluator(LoggerMixin):
                         zip(feature_names, [0.0] * len(feature_names))
                     )
                 else:
-                    import numpy as np
-
                     imp = np.nan_to_num(importances, nan=0.0)
                     imp = np.maximum(imp, 0.0)
                     total = float(np.sum(imp))
@@ -207,6 +241,37 @@ class ModelEvaluator(LoggerMixin):
             )
             if importance_path:
                 saved_files["feature_importance"] = importance_path
+
+        # Graficar curvas ROC y Precision-Recall si hay probabilidades
+        if y_proba is not None:
+            roc_path = (
+                str(save_dir_path / f"{self.model_name}_roc_curve.png")
+                if save_dir_path
+                else None
+            )
+            pr_path = (
+                str(save_dir_path / f"{self.model_name}_precision_recall_curve.png")
+                if save_dir_path
+                else None
+            )
+            self.model_visualizer.plot_roc_curve(
+                y_true,
+                np.array(y_proba),
+                class_names=class_names,
+                save_path=roc_path,
+                show=show_plots,
+            )
+            self.model_visualizer.plot_precision_recall_curve(
+                y_true,
+                np.array(y_proba),
+                class_names=class_names,
+                save_path=pr_path,
+                show=show_plots,
+            )
+            if roc_path:
+                saved_files["roc_curve"] = roc_path
+            if pr_path:
+                saved_files["precision_recall_curve"] = pr_path
 
         self.logger.info(f"Visualizaciones generadas: {len(saved_files)} archivos")
         return saved_files

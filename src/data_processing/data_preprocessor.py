@@ -28,28 +28,54 @@ class DataPreprocessor(LoggerMixin):
     # Eliminado: ingeniería de características específica de Titanic no requerida
 
     def select_features_for_classification(self, df: pd.DataFrame) -> pd.DataFrame:
-
+        """Seleccionar y preparar características para clasificación de cafeterías"""
         df = df.copy()
 
-        df = df.drop(["PassengerId", "Name", "Ticket", "Cabin"], axis=1)
+        # Obtener configuración del dataset usando el nuevo método
+        dataset_info = self.config.get_dataset_info()
+        success_threshold_info = dataset_info["success_threshold"]
 
-        df["Age"] = df["Age"].fillna(df["Age"].median())
-        df["Embarked"] = df["Embarked"].fillna(df["Embarked"].mode()[0])
+        # Validar columnas esperadas
+        required_cols = [
+            "Number_of_Customers_Per_Day",
+            "Average_Order_Value",
+            "Operating_Hours_Per_Day",
+            "Number_of_Employees",
+            "Marketing_Spend_Per_Day",
+            "Location_Foot_Traffic",
+            "Daily_Revenue",
+        ]
+        missing = [c for c in required_cols if c not in df.columns]
+        if missing:
+            raise ValueError(f"Columnas faltantes en dataset: {missing}")
 
-        df = pd.get_dummies(df, columns=["Sex", "Embarked"], drop_first=True, dtype=int)
+        # Crear variable objetivo binaria configurable
+        if success_threshold_info["mode"] == "fixed":
+            revenue_threshold = float(success_threshold_info["value"])
+        else:
+            q = float(success_threshold_info["value"])
+            revenue_threshold = df["Daily_Revenue"].quantile(q)
 
-        if "Survived" not in df.columns:
-            raise ValueError("Columna 'Survived' no encontrada en el dataset")
+        df["Successful"] = (df["Daily_Revenue"] >= revenue_threshold).astype(int)
 
-        result_df = df.copy()
+        # Remover la variable objetivo original para evitar data leakage
+        df = df.drop(["Daily_Revenue"], axis=1)
 
-        feature_columns = [col for col in df.columns if col != "Survived"]
+        # Todas las variables restantes son características útiles para la predicción
+        feature_columns = [col for col in df.columns if col != "Successful"]
 
+        self.logger.info(
+            f"Umbral de éxito ({success_threshold_info['description']}): ${revenue_threshold:.2f}"
+        )
         self.logger.info(f"Características seleccionadas: {feature_columns}")
-        self.logger.info(f"Variable objetivo: Survived")
+        self.logger.info(f"Variable objetivo: Successful (0=No exitosa, 1=Exitosa)")
         self.logger.info(f"Total de características: {len(feature_columns)}")
 
-        return result_df
+        # Mostrar distribución de clases
+        class_distribution = df["Successful"].value_counts()
+        self.logger.info(f"Distribución de clases: {dict(class_distribution)}")
+
+        return df
 
     def handle_missing_values(
         self, df: pd.DataFrame, strategy: str = "median"
@@ -60,8 +86,8 @@ class DataPreprocessor(LoggerMixin):
         numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
         categorical_cols = df.select_dtypes(include=["object"]).columns.tolist()
 
-        if "Survived" in categorical_cols:
-            categorical_cols.remove("Survived")
+        if "Successful" in categorical_cols:
+            categorical_cols.remove("Successful")
 
         if numeric_cols:
             if "numeric" not in self.imputers:
@@ -83,9 +109,9 @@ class DataPreprocessor(LoggerMixin):
                     df[categorical_cols]
                 )
 
-        if "Survived" in df.columns:
+        if "Successful" in df.columns:
             initial_len = len(df)
-            df = df.dropna(subset=["Survived"])
+            df = df.dropna(subset=["Successful"])
             final_len = len(df)
 
             if initial_len != final_len:
@@ -102,8 +128,8 @@ class DataPreprocessor(LoggerMixin):
 
         categorical_cols = df.select_dtypes(include=["object"]).columns.tolist()
 
-        if "Survived" in categorical_cols:
-            categorical_cols.remove("Survived")
+        if "Successful" in categorical_cols:
+            categorical_cols.remove("Successful")
 
         for col in categorical_cols:
             if col not in self.label_encoders:
@@ -128,8 +154,8 @@ class DataPreprocessor(LoggerMixin):
 
         numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
 
-        if "Survived" in df.columns:
-            target_col = df["Survived"].copy()
+        if "Successful" in df.columns:
+            target_col = df["Successful"].copy()
         else:
             target_col = None
 
@@ -155,7 +181,7 @@ class DataPreprocessor(LoggerMixin):
                 df = df[(df[col] >= lower_bound) & (df[col] <= upper_bound)]
 
         if target_col is not None:
-            df["Survived"] = target_col.reindex(df.index)
+            df["Successful"] = target_col.reindex(df.index)
 
         final_len = len(df)
         removed_count = initial_len - final_len
@@ -168,7 +194,7 @@ class DataPreprocessor(LoggerMixin):
         return df
 
     def prepare_features_target(
-        self, df: pd.DataFrame, target_column: str = "Survived"
+        self, df: pd.DataFrame, target_column: str = "Successful"
     ) -> Tuple[pd.DataFrame, pd.Series]:
 
         if target_column not in df.columns:
@@ -228,10 +254,13 @@ class DataPreprocessor(LoggerMixin):
         random_state: Optional[int] = None,
     ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
 
+        # Obtener configuración de preprocesamiento usando el nuevo método
+        preprocessing_config = self.config.get_preprocessing_config()
+
         if test_size is None:
-            test_size = self.config.TEST_SIZE
+            test_size = preprocessing_config["test_size"]
         if random_state is None:
-            random_state = self.config.RANDOM_STATE
+            random_state = preprocessing_config["random_state"]
 
         class_counts = pd.Series(y).value_counts()
         min_class_count = class_counts.min()
@@ -260,7 +289,7 @@ class DataPreprocessor(LoggerMixin):
         return X_train, X_test, y_train, y_test
 
     def preprocess_pipeline(
-        self, df: pd.DataFrame, target_column: str = "Survived"
+        self, df: pd.DataFrame, target_column: str = "Successful"
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
 
         self.logger.info("Iniciando pipeline de preprocesamiento")
