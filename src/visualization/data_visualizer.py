@@ -5,11 +5,11 @@ correlación (`plot_correlation_matrix`) y análisis cuantitativo de correlacion
 
 import numpy as np
 import pandas as pd
-import matplotlib
+import matplotlib  # type: ignore
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import seaborn as sns
+import matplotlib.pyplot as plt  # type: ignore
+import seaborn as sns  # type: ignore
 from typing import Optional, Dict, Any
 
 from ..utils.logger import LoggerMixin
@@ -26,9 +26,11 @@ class DataVisualizer(LoggerMixin):
         plt.style.use("default")
         sns.set_palette("husl")
 
-        plt.rcParams["figure.figsize"] = self.config.FIGURE_SIZE
-        plt.rcParams["figure.dpi"] = self.config.DPI
-        plt.rcParams["savefig.dpi"] = self.config.DPI
+        # Obtener configuración de visualización usando el nuevo método
+        visualization_config = self.config.get_visualization_config()
+        plt.rcParams["figure.figsize"] = visualization_config["figure_size"]
+        plt.rcParams["figure.dpi"] = visualization_config["dpi"]
+        plt.rcParams["savefig.dpi"] = visualization_config["dpi"]
 
     def plot_correlation_matrix(
         self,
@@ -70,19 +72,6 @@ class DataVisualizer(LoggerMixin):
 
         plt.figure(figsize=(12, 10))
 
-        plt.figtext(
-            0.5,
-            0.98,
-            "OBJETIVO: Identificar relaciones lineales entre variables para entender dependencias.\n"
-            "INTERPRETACION: Colores rojos indican correlacion positiva, azules negativa.\n"
-            "Valores cercanos a ±1.0 muestran relaciones fuertes entre variables.",
-            ha="center",
-            va="top",
-            fontsize=10,
-            style="italic",
-            bbox=dict(boxstyle="round,pad=0.6", facecolor="lightcyan", alpha=0.9),
-        )
-
         mask = np.triu(np.ones_like(correlation_matrix, dtype=bool))
 
         sns.heatmap(
@@ -108,7 +97,6 @@ class DataVisualizer(LoggerMixin):
         plt.ylabel("Variables", fontweight="bold")
 
         plt.tight_layout()
-        plt.subplots_adjust(top=0.80)
 
         if save_path:
             plt.savefig(save_path, dpi=self.config.DPI, bbox_inches="tight")
@@ -134,17 +122,27 @@ class DataVisualizer(LoggerMixin):
         for i in range(len(correlation_matrix.columns)):
             for j in range(i + 1, len(correlation_matrix.columns)):
                 corr_val = correlation_matrix.iloc[i, j]
-                if not np.isnan(corr_val) and abs(corr_val) > threshold:
-                    var1 = correlation_matrix.columns[i]
-                    var2 = correlation_matrix.columns[j]
-                    strong_corrs.append(
-                        {
-                            "var1": var1,
-                            "var2": var2,
-                            "correlation": corr_val,
-                            "direction": "positiva" if corr_val > 0 else "negativa",
-                        }
-                    )
+                # Convertir a float para evitar problemas de tipo con pandas scalars
+                try:
+                    # Convertir pandas scalar a float de forma segura
+                    corr_float = float(corr_val)  # type: ignore
+
+                    if not np.isnan(corr_float) and abs(corr_float) > threshold:
+                        var1 = correlation_matrix.columns[i]
+                        var2 = correlation_matrix.columns[j]
+                        strong_corrs.append(
+                            {
+                                "var1": var1,
+                                "var2": var2,
+                                "correlation": corr_val,
+                                "direction": (
+                                    "positiva" if corr_float > 0 else "negativa"
+                                ),
+                            }
+                        )
+                except (ValueError, TypeError):
+                    # Saltar valores que no se pueden convertir a float
+                    continue
 
         strong_corrs.sort(key=lambda x: abs(x["correlation"]), reverse=True)
 

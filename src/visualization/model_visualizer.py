@@ -8,11 +8,11 @@ residuos (`plot_residuals`) y reportes compuestos (`create_model_report`)."""
 
 import numpy as np
 import pandas as pd
-import matplotlib
+import matplotlib  # type: ignore
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import seaborn as sns
+import matplotlib.pyplot as plt  # type: ignore
+import seaborn as sns  # type: ignore
 from typing import Optional, List, Dict
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import learning_curve
@@ -31,9 +31,11 @@ class ModelVisualizer(LoggerMixin):
         plt.style.use("default")
         sns.set_palette("husl")
 
-        plt.rcParams["figure.figsize"] = self.config.FIGURE_SIZE
-        plt.rcParams["figure.dpi"] = self.config.DPI
-        plt.rcParams["savefig.dpi"] = self.config.DPI
+        # Obtener configuración de visualización usando el nuevo método
+        visualization_config = self.config.get_visualization_config()
+        plt.rcParams["figure.figsize"] = visualization_config["figure_size"]
+        plt.rcParams["figure.dpi"] = visualization_config["dpi"]
+        plt.rcParams["savefig.dpi"] = visualization_config["dpi"]
 
     def plot_confusion_matrix(
         self,
@@ -66,19 +68,6 @@ class ModelVisualizer(LoggerMixin):
 
         plt.figure(figsize=(10, 8))
 
-        plt.figtext(
-            0.5,
-            0.98,
-            "OBJETIVO: Evaluar capacidad del modelo KNN para clasificar supervivencia del Titanic (SOBREVIVIÓ/NO SOBREVIVIÓ).\n"
-            "INTERPRETACIÓN: Matriz muestra confusiones entre predicciones de supervivencia.\n"
-            "Diagonal principal indica clasificaciones correctas, errores muestran casos mal clasificados.",
-            ha="center",
-            va="top",
-            fontsize=10,
-            style="italic",
-            bbox=dict(boxstyle="round,pad=0.6", facecolor="lightcyan", alpha=0.9),
-        )
-
         sns.heatmap(
             cm,
             annot=True,
@@ -86,14 +75,14 @@ class ModelVisualizer(LoggerMixin):
             cmap="Blues",
             xticklabels=class_names if class_names is not None else True,
             yticklabels=class_names if class_names is not None else True,
+            cbar_kws={"label": "Count" if not normalize else "Proportion"},
         )
 
-        plt.title(title)
-        plt.ylabel("Etiqueta Verdadera")
-        plt.xlabel("Etiqueta Predicha")
+        plt.title(f"{title} - Coffee Shop Success")
+        plt.ylabel("Actual label")
+        plt.xlabel("Predicted label")
 
         plt.tight_layout()
-        plt.subplots_adjust(top=0.80)
 
         if save_path:
             plt.savefig(save_path, dpi=self.config.DPI, bbox_inches="tight")
@@ -124,23 +113,11 @@ class ModelVisualizer(LoggerMixin):
         plt.figure(figsize=(8, 6))
         sns.heatmap(df_report, annot=True, cmap="RdYlBu_r", fmt=".3f")
 
-        plt.title("Reporte de Clasificación")
-
-        plt.figtext(
-            0.5,
-            0.98,
-            "OBJETIVO: Evaluar rendimiento balanceado del modelo con métricas precision, recall y F1-score por clase.\n"
-            "INTERPRETACION: Reporte detallado muestra rendimiento específico de cada tipo de ruta aérea.\n"
-            "Balance adecuado entre todas las métricas indica modelo confiable para clasificación.",
-            ha="center",
-            va="top",
-            fontsize=10,
-            style="italic",
-            bbox=dict(boxstyle="round,pad=0.6", facecolor="lightcyan", alpha=0.9),
-        )
+        plt.title("Classification Report - Coffee Shop Success")
+        plt.xlabel("Metrics")
+        plt.ylabel("Classes")
 
         plt.tight_layout()
-        plt.subplots_adjust(top=0.80)
 
         if save_path:
             plt.savefig(save_path, dpi=self.config.DPI, bbox_inches="tight")
@@ -183,9 +160,9 @@ class ModelVisualizer(LoggerMixin):
             label=f"K óptimo = {best_k}",
         )
 
-        plt.xlabel("Valor de K", fontsize=12)
-        plt.ylabel("Accuracy (Validación Cruzada)", fontsize=12)
-        plt.title("Optimización del Hiperparámetro K", fontsize=14)
+        plt.xlabel("K value", fontsize=12)
+        plt.ylabel("Accuracy (cross-validation)", fontsize=12)
+        plt.title("K Hyperparameter Optimization - Coffee Shop Success", fontsize=14)
         plt.legend(fontsize=12)
         plt.grid(True, alpha=0.3)
 
@@ -200,21 +177,7 @@ class ModelVisualizer(LoggerMixin):
             color="red",
         )
 
-        plt.figtext(
-            0.5,
-            0.98,
-            "OBJETIVO: Encontrar el valor K óptimo que maximice la accuracy evitando sobreajuste y subajuste.\n"
-            "INTERPRETACION: K bajos (1-5) muestran variabilidad por sobreajuste, K altos (25+) declinan por subajuste.\n"
-            "Curva estable en rango medio confirma robustez del modelo para clasificacion de rutas aereas.",
-            ha="center",
-            va="top",
-            fontsize=10,
-            style="italic",
-            bbox=dict(boxstyle="round,pad=0.6", facecolor="lightcyan", alpha=0.9),
-        )
-
         plt.tight_layout()
-        plt.subplots_adjust(top=0.80)
 
         if save_path:
             plt.savefig(save_path, dpi=self.config.DPI, bbox_inches="tight")
@@ -273,9 +236,9 @@ class ModelVisualizer(LoggerMixin):
             color="red",
         )
 
-        plt.xlabel("Tamaño del Conjunto de Entrenamiento")
+        plt.xlabel("Training set size")
         plt.ylabel("Accuracy")
-        plt.title("Curvas de Aprendizaje")
+        plt.title("Learning Curves - Coffee Shop Success")
         plt.legend()
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
@@ -309,8 +272,9 @@ class ModelVisualizer(LoggerMixin):
         plt.barh(y_pos, importances, color="skyblue")
 
         plt.yticks(y_pos, features)
-        plt.xlabel("Importancia")
-        plt.title("Importancia de Características")
+        plt.xlabel("Importance (normalized)")
+        plt.ylabel("Features")
+        plt.title("Top Features for Success Prediction (Coffee Shop)")
         plt.grid(True, alpha=0.3, axis="x")
 
         for i, v in enumerate(importances):
@@ -318,21 +282,7 @@ class ModelVisualizer(LoggerMixin):
                 v + max(importances) * 0.01, i, f"{v:.4f}", va="center", fontsize=10
             )
 
-        plt.figtext(
-            0.5,
-            0.98,
-            "OBJETIVO: Identificar variables mas influyentes para predecir tipo de ruta aerea (SHORT/MEDIUM/LONG HAUL).\n"
-            "INTERPRETACION: Market share y precios son predictores clave para clasificar rutas por distancia.\n"
-            "Variables temporales y competencia tambien influyen en la caracterizacion de rutas aereas.",
-            ha="center",
-            va="top",
-            fontsize=10,
-            style="italic",
-            bbox=dict(boxstyle="round,pad=0.6", facecolor="lightcyan", alpha=0.9),
-        )
-
         plt.tight_layout()
-        plt.subplots_adjust(top=0.80)
 
         if save_path:
             plt.savefig(save_path, dpi=self.config.DPI, bbox_inches="tight")
@@ -356,9 +306,9 @@ class ModelVisualizer(LoggerMixin):
 
         unique_true, counts_true = np.unique(y_true, return_counts=True)
         axes[0].bar(unique_true, counts_true, color="lightblue", alpha=0.7)
-        axes[0].set_title("Distribución de Valores Reales")
-        axes[0].set_xlabel("Clase")
-        axes[0].set_ylabel("Frecuencia")
+        axes[0].set_title("Actual Class Distribution - Coffee Shop Success")
+        axes[0].set_xlabel("Class")
+        axes[0].set_ylabel("Count")
 
         if class_names:
             axes[0].set_xticks(unique_true)
@@ -366,9 +316,9 @@ class ModelVisualizer(LoggerMixin):
 
         unique_pred, counts_pred = np.unique(y_pred, return_counts=True)
         axes[1].bar(unique_pred, counts_pred, color="lightcoral", alpha=0.7)
-        axes[1].set_title("Distribución de Predicciones")
-        axes[1].set_xlabel("Clase")
-        axes[1].set_ylabel("Frecuencia")
+        axes[1].set_title("Predicted Class Distribution - Coffee Shop Success")
+        axes[1].set_xlabel("Class")
+        axes[1].set_ylabel("Count")
 
         if class_names:
             axes[1].set_xticks(unique_pred)
@@ -546,3 +496,136 @@ class ModelVisualizer(LoggerMixin):
         )
 
         return saved_files
+
+    def plot_roc_curve(
+        self,
+        y_true: np.ndarray,
+        y_proba: np.ndarray,
+        class_names: Optional[List[str]] = None,
+        save_path: Optional[str] = None,
+        show: bool = True,
+    ) -> None:
+        from sklearn.metrics import roc_curve, auc
+
+        # Asegurar matriz densa de NumPy (manejar entradas sparse)
+        import numpy as _np
+        from typing import Any
+
+        proba_any: Any = y_proba
+        if hasattr(proba_any, "toarray"):
+            try:
+                proba_any = proba_any.toarray()
+            except Exception:
+                pass
+        proba_array: _np.ndarray = _np.array(proba_any, dtype=float)
+
+        plt.figure(figsize=(8, 6))
+        if proba_array.ndim == 1 or (
+            proba_array.ndim == 2 and proba_array.shape[1] == 1
+        ):
+            scores = proba_array if proba_array.ndim == 1 else proba_array[:, 0]  # type: ignore[index]
+            fpr, tpr, _ = roc_curve(y_true, scores)
+            roc_auc = auc(fpr, tpr)
+            plt.plot(fpr, tpr, label=f"ROC (AUC = {roc_auc:.3f})")
+        elif proba_array.shape[1] == 2:
+            scores = proba_array[:, 1]  # type: ignore[index]
+            fpr, tpr, _ = roc_curve(y_true, scores)
+            roc_auc = auc(fpr, tpr)
+            plt.plot(fpr, tpr, label=f"ROC (AUC = {roc_auc:.3f})")
+        else:
+            # Multiclase: One-vs-Rest promedio macro
+            from sklearn.preprocessing import label_binarize
+
+            classes = np.unique(y_true)
+            y_true_bin = label_binarize(y_true, classes=classes)
+            aucs = []
+            for i in range(len(classes)):
+                fpr, tpr, _ = roc_curve(y_true_bin[:, i], proba_array[:, i])  # type: ignore[index]
+                aucs.append(auc(fpr, tpr))
+            plt.plot([0, 1], [0, 1], "k--", alpha=0.3)
+            plt.title("ROC (macro-avg)")
+            plt.text(0.6, 0.05, f"AUC macro = {np.mean(aucs):.3f}")
+
+        plt.plot([0, 1], [0, 1], "k--", alpha=0.3)
+        plt.xlabel("False Positive Rate")
+        plt.ylabel("True Positive Rate")
+        pos_label = None
+        if class_names is not None and len(class_names) >= 2:
+            pos_label = class_names[1]
+        subtitle = f" (Positive class: {pos_label})" if pos_label else ""
+        plt.title(f"ROC Curve - Coffee Shop Success{subtitle}")
+        plt.legend(loc="lower right")
+        plt.tight_layout()
+        if save_path:
+            plt.savefig(save_path, dpi=self.config.DPI, bbox_inches="tight")
+            self.logger.info(f"Curva ROC guardada en: {save_path}")
+        if show:
+            plt.show()
+        else:
+            plt.close()
+
+    def plot_precision_recall_curve(
+        self,
+        y_true: np.ndarray,
+        y_proba: np.ndarray,
+        class_names: Optional[List[str]] = None,
+        save_path: Optional[str] = None,
+        show: bool = True,
+    ) -> None:
+        from sklearn.metrics import precision_recall_curve, auc, average_precision_score
+
+        # Asegurar matriz densa de NumPy (manejar entradas sparse)
+        import numpy as _np
+        from typing import Any
+
+        proba_any: Any = y_proba
+        if hasattr(proba_any, "toarray"):
+            try:
+                proba_any = proba_any.toarray()
+            except Exception:
+                pass
+        proba_array: _np.ndarray = _np.array(proba_any, dtype=float)
+
+        plt.figure(figsize=(8, 6))
+        if proba_array.ndim == 1 or (
+            proba_array.ndim == 2 and proba_array.shape[1] == 1
+        ):
+            scores = proba_array if proba_array.ndim == 1 else proba_array[:, 0]  # type: ignore[index]
+            precision, recall, _ = precision_recall_curve(y_true, scores)
+            ap = average_precision_score(y_true, scores)
+            pr_auc = auc(recall, precision)
+            plt.plot(recall, precision, label=f"PR (AP = {ap:.3f})")
+        elif proba_array.shape[1] == 2:
+            scores = proba_array[:, 1]  # type: ignore[index]
+            precision, recall, _ = precision_recall_curve(y_true, scores)
+            ap = average_precision_score(y_true, scores)
+            pr_auc = auc(recall, precision)
+            plt.plot(recall, precision, label=f"PR (AP = {ap:.3f})")
+        else:
+            from sklearn.preprocessing import label_binarize
+
+            classes = np.unique(y_true)
+            y_true_bin = label_binarize(y_true, classes=classes)
+            aps = []
+            for i in range(len(classes)):
+                precision, recall, _ = precision_recall_curve(y_true_bin[:, i], proba_array[:, i])  # type: ignore[index]
+                aps.append(average_precision_score(y_true_bin[:, i], proba_array[:, i]))  # type: ignore[index]
+            plt.title("Precision-Recall (macro-avg)")
+            plt.text(0.5, 0.1, f"AP macro = {np.mean(aps):.3f}")
+
+        plt.xlabel("Recall")
+        plt.ylabel("Precision")
+        pos_label = None
+        if class_names is not None and len(class_names) >= 2:
+            pos_label = class_names[1]
+        subtitle = f" (Positive class: {pos_label})" if pos_label else ""
+        plt.title(f"Precision-Recall Curve - Coffee Shop Success{subtitle}")
+        plt.legend(loc="lower left")
+        plt.tight_layout()
+        if save_path:
+            plt.savefig(save_path, dpi=self.config.DPI, bbox_inches="tight")
+            self.logger.info(f"Curva Precision-Recall guardada en: {save_path}")
+        if show:
+            plt.show()
+        else:
+            plt.close()

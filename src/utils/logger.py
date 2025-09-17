@@ -6,11 +6,11 @@ inyecta un logger por clase y ofrece helpers estructurados (`log_step`, `log_res
 
 import logging
 import sys
-from typing import Optional
+from typing import Optional, Dict, Any
 
 
 def setup_logger(
-    name: str = "knn_classifier",
+    name: str = "ml_pipeline",
     level: str = "INFO",
     format_string: Optional[str] = None,
 ) -> logging.Logger:
@@ -58,7 +58,9 @@ class LoggerMixin:
 
         self.logger.info(f"{separator}")
 
-    def log_result(self, operation: str, result: str, metrics: dict = None):
+    def log_result(
+        self, operation: str, result: str, metrics: Optional[Dict[str, Any]] = None
+    ):
         self.logger.info(f"✅ {operation.upper()}: {result}")
 
         if metrics:
@@ -74,7 +76,9 @@ class LoggerMixin:
         if details:
             self.logger.info(f"   ℹ️  {details}")
 
-    def log_data_info(self, data_name: str, shape: tuple, details: dict = None):
+    def log_data_info(
+        self, data_name: str, shape: tuple, details: Optional[Dict[str, Any]] = None
+    ):
 
         self.logger.info(f"📊 DATOS PROCESADOS: {data_name}")
         self.logger.info(f"   • Forma: {shape[0]:,} filas × {shape[1]} columnas")
