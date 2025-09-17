@@ -1,2 +1,0 @@
-model_name,model_type,evaluation_date,train_accuracy,test_accuracy,precision,recall,f1_score,overfitting_score,cohen_kappa,matthews_corrcoef
-KNN_Titanic_Classifier,KNeighborsClassifier,2025-09-09T06:00:54.581331,0.8286516853932584,0.8212290502793296,0.8270672444955636,0.8212290502793296,0.81458147504812,0.007422635113928822,0.6033790333748787,0.6189799749918868
