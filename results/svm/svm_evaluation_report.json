@@ -1,0 +1,235 @@
+{
+  "model_info": {
+    "name": "SVM_Coffee_Shop_Classifier",
+    "type": "SVMClassifier",
+    "parameters": {
+      "C": 1.0,
+      "break_ties": false,
+      "cache_size": 200,
+      "class_weight": null,
+      "coef0": 0.0,
+      "decision_function_shape": "ovr",
+      "degree": 3,
+      "gamma": 0.1,
+      "kernel": "rbf",
+      "max_iter": -1,
+      "probability": true,
+      "random_state": 42,
+      "shrinking": true,
+      "tol": 0.001,
+      "verbose": false
+    },
+    "evaluation_date": "2025-09-17T11:41:05.203180"
+  },
+  "data_info": {
+    "train_samples": 1600,
+    "test_samples": 400,
+    "num_features": 6,
+    "num_classes": 2,
+    "class_names": [
+      "No Exitosa",
+      "Exitosa"
+    ],
+    "feature_names": [
+      "Number_of_Customers_Per_Day",
+      "Average_Order_Value",
+      "Operating_Hours_Per_Day",
+      "Number_of_Employees",
+      "Marketing_Spend_Per_Day",
+      "Location_Foot_Traffic"
+    ]
+  },
+  "performance_metrics": {
+    "train_metrics": {
+      "accuracy": 0.944375,
+      "balanced_accuracy": 0.9419530815830874,
+      "precision": 0.9443406023034835,
+      "recall": 0.944375,
+      "f1_score": 0.944354368710668
+    },
+    "test_metrics": {
+      "accuracy": 0.9475,
+      "balanced_accuracy": 0.9470121381886087,
+      "precision": 0.9477582205029013,
+      "recall": 0.9475,
+      "f1_score": 0.9475743352018157,
+      "auc_roc": 0.9921153646643842,
+      "average_precision": 0.9886076741775798
+    },
+    "advanced_metrics": {
+      "cohen_kappa": 0.891388673390225,
+      "matthews_corrcoef": 0.8914959906799318
+    },
+    "overfitting_score": -0.0031250000000000444
+  },
+  "detailed_analysis": {
+    "per_class_metrics": [
+      {
+        "Class": "No Exitosa",
+        "Precision": 0.9617021276595744,
+        "Recall": 0.9495798319327731,
+        "F1-Score": 0.9556025369978859,
+        "Support": 238
+      },
+      {
+        "Class": "Exitosa",
+        "Precision": 0.9272727272727272,
+        "Recall": 0.9444444444444444,
+        "F1-Score": 0.9357798165137615,
+        "Support": 162
+      }
+    ],
+    "confusion_matrix_analysis": {
+      "confusion_matrix": [
+        [
+          226,
+          12
+        ],
+        [
+          9,
+          153
+        ]
+      ],
+      "confusion_matrix_normalized_by_true": [
+        [
+          0.9495798319327731,
+          0.05042016806722689
+        ],
+        [
+          0.05555555555555555,
+          0.9444444444444444
+        ]
+      ],
+      "confusion_matrix_normalized_by_pred": [
+        [
+          0.9617021276595744,
+          0.07272727272727272
+        ],
+        [
+          0.03829787234042553,
+          0.9272727272727272
+        ]
+      ],
+      "confusion_matrix_normalized_overall": [
+        [
+          0.565,
+          0.03
+        ],
+        [
+          0.0225,
+          0.3825
+        ]
+      ],
+      "total_samples": 400,
+      "correct_predictions": 379,
+      "incorrect_predictions": 21,
+      "error_rate": 0.0525,
+      "class_distribution": [
+        238,
+        162
+      ],
+      "prediction_distribution": [
+        235,
+        165
+      ]
+    },
+    "error_analysis": {
+      "per_class_errors": {
+        "No Exitosa": {
+          "true_instances": 238,
+          "correct_predictions": 226,
+          "false_negatives": 12,
+          "false_positives": 9,
+          "accuracy_for_class": 0.9495798319327731
+        },
+        "Exitosa": {
+          "true_instances": 162,
+          "correct_predictions": 153,
+          "false_negatives": 9,
+          "false_positives": 12,
+          "accuracy_for_class": 0.9444444444444444
+        }
+      },
+      "most_common_confusions": [
+        {
+          "true_class": "No Exitosa",
+          "predicted_class": "Exitosa",
+          "count": 12,
+          "percentage": 5.042016806722689
+        },
+        {
+          "true_class": "Exitosa",
+          "predicted_class": "No Exitosa",
+          "count": 9,
+          "percentage": 5.555555555555555
+        }
+      ],
+      "total_errors": 21,
+      "error_rate": 0.0525
+    },
+    "cross_validation": {
+      "accuracy": {
+        "mean": 0.9262500000000001,
+        "std": 0.012119199643540817,
+        "min": 0.909375,
+        "max": 0.946875,
+        "scores": [
+          0.946875,
+          0.921875,
+          0.925,
+          0.928125,
+          0.909375
+        ]
+      },
+      "precision_weighted": {
+        "mean": 0.9281413835892703,
+        "std": 0.012477653440933146,
+        "min": 0.9105076611482916,
+        "max": 0.9488178014717519,
+        "scores": [
+          0.9488178014717519,
+          0.9236379581901488,
+          0.925818140288218,
+          0.9319253568479414,
+          0.9105076611482916
+        ]
+      },
+      "recall_weighted": {
+        "mean": 0.9262500000000001,
+        "std": 0.012119199643540817,
+        "min": 0.909375,
+        "max": 0.946875,
+        "scores": [
+          0.946875,
+          0.921875,
+          0.925,
+          0.928125,
+          0.909375
+        ]
+      },
+      "f1_weighted": {
+        "mean": 0.9265274369921505,
+        "std": 0.012131488248036294,
+        "min": 0.9095056591374963,
+        "max": 0.9470893524283934,
+        "scores": [
+          0.9470893524283934,
+          0.9222988245931283,
+          0.9252571177724821,
+          0.9284862310292528,
+          0.9095056591374963
+        ]
+      }
+    }
+  },
+  "feature_analysis": {
+    "feature_importance": {
+      "Number_of_Customers_Per_Day": 0.5117967332123412,
+      "Average_Order_Value": 0.4047186932849364,
+      "Operating_Hours_Per_Day": 0.001361161524500959,
+      "Number_of_Employees": 0.0,
+      "Marketing_Spend_Per_Day": 0.08212341197822146,
+      "Location_Foot_Traffic": 0.0
+    }
+  }
+}
