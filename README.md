@@ -1,72 +1,124 @@
-# 🤖 K-NN Titanic – Guía de Levantamiento del Proyecto
+# 🤖 ML-Algorithms – Análisis Completo de Machine Learning
 
 ## 📋 Descripción breve
 
-Clasificador K-Nearest Neighbors (KNN) para predecir la supervivencia de pasajeros del Titanic. Al ejecutarlo, se entrena el modelo, se evalúa y se generan métricas y visualizaciones en la carpeta `results/`.
+Sistema completo de análisis de Machine Learning para predecir el éxito de cafeterías usando múltiples algoritmos. Implementa los 6 pasos principales del desarrollo de modelos ML y compara el rendimiento de diferentes algoritmos automáticamente.
 
 ## 🎯 Objetivo
 
-Entrenar y evaluar un modelo KNN para la etiqueta binaria `Survival` (0 = No Sobrevivió, 1 = Sobrevivió) usando variables demográficas y de viaje, con preprocesamiento reproducible y reportes automatizados.
+Predecir si una cafetería es "exitosa" (Daily_Revenue ≥ $2,000) o "no exitosa" (Daily_Revenue < $2,000) basándose en sus métricas operacionales (clientes, ingresos, empleados, marketing, etc.) comparando 5 algoritmos diferentes de ML:
+
+- **Regresión Logística**
+- **Máquinas de Vector de Soporte (SVM)**
+- **Árboles de Decisión**
+- **Random Forest**
+- **Redes Neuronales Artificiales (MLP)**
 
 ## 🚀 Levantamiento rápido
 
-1. Prerrequisitos
+### 1. Prerrequisitos
 
 - Python 3.8+
 - pip actualizado
 
-2. instalar
+### 2. Instalación
 
 ```bash
-cd knn-clasification
-python -m venv knn_env
+cd ML-Algorithms
+python -m venv ml_env
 
 # Activar entorno virtual
 # Linux/Mac
-source knn_env/bin/activate
+source ml_env/bin/activate
 # Windows (PowerShell)
-knn_env\Scripts\Activate.ps1
+ml_env\Scripts\Activate.ps1
 
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-3. Ejecutar
+### 3. Ejecución
+
+**Análisis completo (todos los algoritmos):**
 
 ```bash
-python knn_analysis.py
+python ml_analysis.py
 ```
 
-Tiempo estimado: 3–8 minutos (según equipo/configuración).
+**Análisis rápido (sin optimización de hiperparámetros):**
+
+```bash
+python ml_analysis.py --quick-mode
+```
+
+**Algoritmos específicos:**
+
+```bash
+python ml_analysis.py --algorithms LogisticRegression SVM DecisionTree RandomForest NeuralNetwork
+```
+
+**Opciones adicionales:**
+
+```bash
+python ml_analysis.py --help
+```
+
+Tiempo estimado: 5–20 minutos (según configuración y algoritmos seleccionados).
 
 ## 📂 Resultados al ejecutar
 
-Los artefactos principales se guardan en `results/`:
+### Estructura de resultados en `results/`
 
-- `evaluation_report.json`: métricas, matriz de confusión y validación cruzada.
-- `metrics_summary.csv`: resumen ejecutivo de métricas clave.
-- `knn_model.pkl`: modelo entrenado listo para cargar y predecir.
-- `correlation_matrix.png`: matriz de correlación de variables numéricas.
-- `k_optimization.png`: curva de optimización del hiperparámetro K.
-- `model_visualizations/`
-  - `KNN_Titanic_Classifier_confusion_matrix.png`: matriz de confusión del modelo.
-  - `KNN_Titanic_Classifier_feature_importance.png`: importancia de características.
+```
+results/
+├── algorithm_comparison_report.json     # Comparación completa de todos los algoritmos
+├── correlation_matrix.png               # Análisis de correlaciones del dataset
+├── comparisons/                         # Visualizaciones comparativas
+│   ├── metrics_comparison.png          # Comparación de métricas por algoritmo
+│   ├── rankings_heatmap.png            # Heatmap de rankings
+│   ├── radar_comparison.png            # Gráfico radar multidimensional
+│   └── time_vs_accuracy.png            # Tiempo vs precisión
+├── logisticregression/                  # Resultados de Regresión Logística
+│   ├── logisticregression_model.pkl
+│   ├── coefficients.png                # Visualización de coeficientes
+│   └── ...
+├── svm/                                 # Resultados de SVM
+│   ├── svm_model.pkl
+│   ├── decision_boundary.png           # Frontera de decisión (2D)
+│   └── ...
+├── decisiontree/                        # Resultados de Árbol de Decisión
+│   ├── decisiontree_model.pkl
+│   ├── tree_visualization.png          # Visualización del árbol
+│   ├── feature_importance.png
+│   └── ...
+├── randomforest/                        # Resultados de Random Forest
+│   ├── randomforest_model.pkl
+│   ├── feature_importance.png
+│   ├── trees_depth_distribution.png
+│   └── ...
+└── neuralnetwork/                       # Resultados de Red Neuronal
+    ├── neuralnetwork_model.pkl
+    ├── training_curves.png             # Curvas de pérdida y validación
+    ├── network_architecture.png        # Visualización de la arquitectura
+    └── ...
 
-## 📚 Documentación avanzada
+## 📚 Documentación
 
-- Proceso detallado del pipeline: `docs/PROCESO_KNN.md`
 - Análisis e interpretación de resultados: `docs/ANALISIS_RESULTADOS.md`
 
 ## 🧭 Estructura mínima del proyecto
 
 ```
-knn-clasification/
+
+ML-Algorithms/
 ├── src/
 ├── data/
 ├── results/
 └── docs/
+
 ```
 
 ## 📝 Notas
 
-- Para usar `knn_model.pkl` en inferencia, aplica exactamente el mismo preprocesamiento (escalado y columnas) que en el entrenamiento.
+- Ejecuta `python ml_analysis.py --help` para ver opciones de ejecución (algoritmos, modo rápido, rutas).
+```
