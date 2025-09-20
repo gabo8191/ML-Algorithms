@@ -1,2 +1,0 @@
-model_name,model_type,evaluation_date,train_accuracy,test_accuracy,precision,recall,f1_score,overfitting_score,cohen_kappa,matthews_corrcoef
-SVM_Coffee_Shop_Classifier,SVMClassifier,2025-09-17T11:41:05.203180,0.944375,0.9475,0.9477582205029013,0.9475,0.9475743352018157,-0.0031250000000000444,0.891388673390225,0.8914959906799318
