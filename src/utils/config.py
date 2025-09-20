@@ -21,7 +21,6 @@ class Config:
     # ================================================================
     DATA_PATH: str = "data/coffee_shop_revenue.csv"
     RESULTS_PATH: str = "results"
-    MODELS_PATH: str = "models"
 
     # ================================================================
     # PARÁMETROS DE MACHINE LEARNING
@@ -65,7 +64,6 @@ class Config:
         """Inicialización post-creación de la configuración."""
         # Crear directorios principales
         os.makedirs(self.RESULTS_PATH, exist_ok=True)
-        os.makedirs(self.MODELS_PATH, exist_ok=True)
 
         # Configurar algoritmos a comparar
         if self.ALGORITHMS_TO_COMPARE is None:
