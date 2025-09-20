@@ -1,0 +1,2 @@
+model_name,model_type,evaluation_date,train_accuracy,test_accuracy,precision,recall,f1_score,overfitting_score,cohen_kappa,matthews_corrcoef
+LogisticRegression_Coffee_Shop_Classifier,LogisticRegressionClassifier,2025-09-19T20:09:49.106720,0.92625,0.93,0.9323863289594141,0.93,0.930344827586207,-0.003750000000000031,0.8564544242797087,0.8580797305011252
